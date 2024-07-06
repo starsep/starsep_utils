@@ -5,6 +5,8 @@ pre-commit:
     ruff:
       run: ruff format . && ruff check . --fix
       stage_fixed: true
+    pytest:
+      run: pytest
 
 skip_output:
   - meta           # Skips lefthook version printing
