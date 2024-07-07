@@ -9,6 +9,7 @@ from .overpass import (
     OverpassResult,
     RelationMember,
 )
+from .fileSize import formatFileSize
 
 __all__ = [
     "haversine",
@@ -21,4 +22,5 @@ __all__ = [
     "Element",
     "OverpassResult",
     "RelationMember",
+    "formatFileSize",
 ]
