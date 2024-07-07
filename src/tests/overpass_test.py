@@ -5,9 +5,54 @@ from starsep_utils import (
     Relation,
     Way,
     OverpassResult,
+    GeoPoint,
 )
 
 from starsep_utils.overpass import DEFAULT_OVERPASS_URL, KeyDict
+
+expectedResult = OverpassResult(
+    nodes={
+        10001: Node(id=10001, type="node", tags=KeyDict({}), lat=52.01, lon=21.01),
+        10002: Node(id=10002, type="node", tags=KeyDict({}), lat=52.02, lon=21.01),
+        10003: Node(id=10003, type="node", tags=KeyDict({}), lat=52.03, lon=21.01),
+        10004: Node(id=10004, type="node", tags=KeyDict({}), lat=52.04, lon=21.01),
+        12345: Node(
+            id=12345,
+            type="node",
+            tags=KeyDict({"amenity": "drinking_water"}),
+            lat=52.01,
+            lon=21.01,
+        ),
+    },
+    ways={
+        55555: Way(id=55555, type="way", tags=KeyDict({}), nodes=[10001, 10002, 10003]),
+        66666: Way(id=66666, type="way", tags=KeyDict({}), nodes=[10002, 10003, 10004]),
+        99999: Way(
+            id=99999,
+            type="way",
+            tags=KeyDict({"amenity": "drinking_water", "building": "yes"}),
+            nodes=[10001, 10002, 10003, 10004],
+        ),
+    },
+    relations={
+        111111: Relation(
+            id=111111,
+            type="relation",
+            tags=KeyDict(
+                {
+                    "amenity": "drinking_water",
+                    "building": "yes",
+                    "man_made": "water_well",
+                    "type": "multipolygon",
+                }
+            ),
+            members=[
+                RelationMember(type="way", id=55555, role="outer"),
+                RelationMember(type="way", id=66666, role="outer"),
+            ],
+        )
+    },
+)
 
 
 def testDownloadOverpassData(httpx_mock):
@@ -71,51 +116,28 @@ def testDownloadOverpassData(httpx_mock):
     out;
     """
 
-    expectedResult = OverpassResult(
-        nodes={
-            10001: Node(id=10001, type="node", tags=KeyDict({}), lat=52.01, lon=21.01),
-            10002: Node(id=10002, type="node", tags=KeyDict({}), lat=52.02, lon=21.01),
-            10003: Node(id=10003, type="node", tags=KeyDict({}), lat=52.03, lon=21.01),
-            10004: Node(id=10004, type="node", tags=KeyDict({}), lat=52.04, lon=21.01),
-            12345: Node(
-                id=12345,
-                type="node",
-                tags=KeyDict({"amenity": "drinking_water"}),
-                lat=52.01,
-                lon=21.01,
-            ),
-        },
-        ways={
-            55555: Way(
-                id=55555, type="way", tags=KeyDict({}), nodes=[10001, 10002, 10003]
-            ),
-            66666: Way(
-                id=66666, type="way", tags=KeyDict({}), nodes=[10002, 10003, 10004]
-            ),
-            99999: Way(
-                id=99999,
-                type="way",
-                tags=KeyDict({"amenity": "drinking_water", "building": "yes"}),
-                nodes=[10001, 10002, 10003, 10004],
-            ),
-        },
-        relations={
-            111111: Relation(
-                id=111111,
-                type="relation",
-                tags=KeyDict(
-                    {
-                        "amenity": "drinking_water",
-                        "building": "yes",
-                        "man_made": "water_well",
-                        "type": "multipolygon",
-                    }
-                ),
-                members=[
-                    RelationMember(type="way", id=55555, role="outer"),
-                    RelationMember(type="way", id=66666, role="outer"),
-                ],
-            )
-        },
-    )
     assert downloadOverpassData(query) == expectedResult
+
+
+def testCenter():
+    assert expectedResult.nodes[12345].center(expectedResult) == GeoPoint(
+        lat=52.01, lon=21.01
+    )
+    assert expectedResult.ways[55555].center(expectedResult) == GeoPoint(
+        lat=52.02, lon=21.01
+    )
+
+
+def testBbox():
+    assert expectedResult.nodes[12345].bbox(expectedResult) == (
+        GeoPoint(lat=52.01, lon=21.01),
+        GeoPoint(lat=52.01, lon=21.01),
+    )
+    assert expectedResult.ways[55555].bbox(expectedResult) == (
+        GeoPoint(lat=52.01, lon=21.01),
+        GeoPoint(lat=52.03, lon=21.01),
+    )
+    assert expectedResult.relations[111111].bbox(expectedResult) == (
+        GeoPoint(lat=52.01, lon=21.01),
+        GeoPoint(lat=52.04, lon=21.01),
+    )

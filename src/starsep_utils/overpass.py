@@ -2,10 +2,10 @@ import abc
 import json
 import logging
 from dataclasses import dataclass
-from typing import Tuple, List, Dict
 
 import httpx
 
+from . import GeoPoint
 from .logDuration import logDuration
 
 
@@ -17,41 +17,65 @@ class KeyDict(dict):
         return hash(frozenset(self.items()))
 
 
+Bbox = tuple[GeoPoint, GeoPoint]
+
+
 @dataclass(frozen=True)
 class Element(abc.ABC):
     id: int
     type: str
-    tags: KeyDict[str, str]
+    tags: KeyDict
 
     @property
     def url(self):
         return f"https://osm.org/{self.type}/{self.id}"
 
     @abc.abstractmethod
-    def center(self, overpassResult: "OverpassResult") -> Tuple[float, float]:
+    def center(self, overpassResult: "OverpassResult") -> GeoPoint:
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def bbox(self, overpassResult: "OverpassResult") -> Bbox:
         raise NotImplementedError
 
 
 @dataclass(frozen=True)
-class Node(Element):
-    lat: float
-    lon: float
+class Node(Element, GeoPoint):
+    def bbox(self, overpassResult: "OverpassResult") -> Bbox:
+        return GeoPoint(lat=self.lat, lon=self.lon), GeoPoint(
+            lat=self.lat, lon=self.lon
+        )
 
-    def center(self, overpassResult: "OverpassResult") -> Tuple[float, float]:
-        return self.lat, self.lon
+    def center(self, overpassResult: "OverpassResult") -> GeoPoint:
+        return GeoPoint(lat=self.lat, lon=self.lon)
 
 
 @dataclass(frozen=True)
 class Way(Element):
-    nodes: List[int]
+    nodes: list[int]
 
-    def center(self, overpassResult: "OverpassResult") -> Tuple[float, float]:
+    def center(self, overpassResult: "OverpassResult") -> GeoPoint:
         centers = [
             overpassResult.nodes[nodeId].center(overpassResult) for nodeId in self.nodes
         ]
-        lat = sum(center[0] for center in centers) / len(centers)
-        lon = sum(center[1] for center in centers) / len(centers)
-        return lat, lon
+        lat = sum(center.lat for center in centers) / len(centers)
+        lon = sum(center.lon for center in centers) / len(centers)
+        return GeoPoint(lat=lat, lon=lon)
+
+    def bbox(self, overpassResult: "OverpassResult") -> Bbox:
+        minLat, minLon, maxLat, maxLon = (
+            float("inf"),
+            float("inf"),
+            float("-inf"),
+            float("-inf"),
+        )
+        for nodeId in self.nodes:
+            node = overpassResult.nodes[nodeId]
+            minLat = min(minLat, node.lat)
+            minLon = min(minLon, node.lon)
+            maxLat = max(maxLat, node.lat)
+            maxLon = max(maxLon, node.lon)
+        return GeoPoint(lat=minLat, lon=minLon), GeoPoint(lat=maxLat, lon=maxLon)
 
 
 @dataclass(frozen=True)
@@ -63,17 +87,33 @@ class RelationMember:
 
 @dataclass(frozen=True)
 class Relation(Element):
-    members: List[RelationMember]
+    members: list[RelationMember]
 
-    def center(self, overpassResult: "OverpassResult") -> Tuple[float, float]:
+    def center(self, overpassResult: "OverpassResult") -> GeoPoint:
         raise NotImplementedError
+
+    def bbox(self, overpassResult: "OverpassResult") -> Bbox:
+        minLat, minLon, maxLat, maxLon = (
+            float("inf"),
+            float("inf"),
+            float("-inf"),
+            float("-inf"),
+        )
+        for member in self.members:
+            element = overpassResult.resolve(member)
+            bbox = element.bbox(overpassResult)
+            minLat = min(minLat, bbox[0].lat)
+            minLon = min(minLon, bbox[0].lon)
+            maxLat = max(maxLat, bbox[1].lat)
+            maxLon = max(maxLon, bbox[1].lon)
+        return GeoPoint(lat=minLat, lon=minLon), GeoPoint(lat=maxLat, lon=maxLon)
 
 
 @dataclass(frozen=True)
 class OverpassResult:
-    nodes: Dict[int, Node]
-    ways: Dict[int, Way]
-    relations: Dict[int, Relation]
+    nodes: dict[int, Node]
+    ways: dict[int, Way]
+    relations: dict[int, Relation]
 
     def resolve(self, member: RelationMember) -> Element:
         if member.type == "node":
@@ -95,7 +135,7 @@ def _getOverpassHttpx(query: str, overpassUrl: str):
 
 
 @logDuration
-def _parseOverpassData(parsedElements: List[Dict]) -> OverpassResult:
+def _parseOverpassData(parsedElements: list[dict]) -> OverpassResult:
     nodes, ways, relations = dict(), dict(), dict()
     for element in parsedElements:
         if element["type"] == "node":
