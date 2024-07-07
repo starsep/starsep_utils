@@ -9,7 +9,10 @@ in pkgs.mkShell {
     ruff
     (python3.withPackages (python-pkgs: with python-pkgs; [
       build
+      funcy
+      httpx
       pytest
+      pytest-httpx
       twine
     ]))
   ];
