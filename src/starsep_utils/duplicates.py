@@ -1,9 +1,14 @@
+from typing import TypeVar
+
 from . import GeoPoint, OverpassResult, haversine
 
 
+P = TypeVar("P", bound=GeoPoint)
+
+
 def removeLikelyDuplicates(
-    distanceThreshold: int, data: list[GeoPoint], overpassResult: OverpassResult
-) -> list[GeoPoint]:
+    distanceThreshold: int, data: list[P], overpassResult: OverpassResult
+) -> list[P]:
     result = []
     for point in data:
         minDistance = distanceThreshold + 1
