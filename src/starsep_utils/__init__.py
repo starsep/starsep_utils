@@ -1,4 +1,5 @@
-from .distance import haversine, GeoPoint
+from .distance import haversine
+from .models import GeoPoint
 from .logDuration import logDuration
 from .overpass import (
     downloadOverpassData,
@@ -9,6 +10,7 @@ from .overpass import (
     OverpassResult,
     RelationMember,
 )
+from .duplicates import removeLikelyDuplicates
 from .fileSize import formatFileSize
 
 __all__ = [
@@ -23,4 +25,5 @@ __all__ = [
     "OverpassResult",
     "RelationMember",
     "formatFileSize",
+    "removeLikelyDuplicates",
 ]

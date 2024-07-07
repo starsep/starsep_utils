@@ -124,6 +124,13 @@ class OverpassResult:
             return self.relations[member.id]
         raise ValueError(member.type)
 
+    def allElements(self) -> list[Element]:
+        return (
+            list(self.nodes.values())
+            + list(self.ways.values())
+            + list(self.relations.values())
+        )
+
 
 def _getOverpassHttpx(query: str, overpassUrl: str):
     with logDuration("Downloading data from Overpass"):

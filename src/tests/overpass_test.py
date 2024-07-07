@@ -10,7 +10,7 @@ from starsep_utils import (
 
 from starsep_utils.overpass import DEFAULT_OVERPASS_URL, KeyDict
 
-expectedResult = OverpassResult(
+expectedOverpassResult = OverpassResult(
     nodes={
         10001: Node(id=10001, type="node", tags=KeyDict({}), lat=52.01, lon=21.01),
         10002: Node(id=10002, type="node", tags=KeyDict({}), lat=52.02, lon=21.01),
@@ -116,28 +116,28 @@ def testDownloadOverpassData(httpx_mock):
     out;
     """
 
-    assert downloadOverpassData(query) == expectedResult
+    assert downloadOverpassData(query) == expectedOverpassResult
 
 
 def testCenter():
-    assert expectedResult.nodes[12345].center(expectedResult) == GeoPoint(
-        lat=52.01, lon=21.01
-    )
-    assert expectedResult.ways[55555].center(expectedResult) == GeoPoint(
-        lat=52.02, lon=21.01
-    )
+    assert expectedOverpassResult.nodes[12345].center(
+        expectedOverpassResult
+    ) == GeoPoint(lat=52.01, lon=21.01)
+    assert expectedOverpassResult.ways[55555].center(
+        expectedOverpassResult
+    ) == GeoPoint(lat=52.02, lon=21.01)
 
 
 def testBbox():
-    assert expectedResult.nodes[12345].bbox(expectedResult) == (
+    assert expectedOverpassResult.nodes[12345].bbox(expectedOverpassResult) == (
         GeoPoint(lat=52.01, lon=21.01),
         GeoPoint(lat=52.01, lon=21.01),
     )
-    assert expectedResult.ways[55555].bbox(expectedResult) == (
+    assert expectedOverpassResult.ways[55555].bbox(expectedOverpassResult) == (
         GeoPoint(lat=52.01, lon=21.01),
         GeoPoint(lat=52.03, lon=21.01),
     )
-    assert expectedResult.relations[111111].bbox(expectedResult) == (
+    assert expectedOverpassResult.relations[111111].bbox(expectedOverpassResult) == (
         GeoPoint(lat=52.01, lon=21.01),
         GeoPoint(lat=52.04, lon=21.01),
     )
