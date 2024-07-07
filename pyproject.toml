@@ -4,7 +4,7 @@ build-backend = "pdm.backend"
 
 [project]
 name = "starsep_utils"
-version = "0.2.0"
+version = "0.3.0"
 authors = [
     { name="Filip Czaplicki", email="github@starsep.com" },
 ]
@@ -16,7 +16,9 @@ classifiers = [
     "License :: OSI Approved :: GNU Affero General Public License v3 or later (AGPLv3+)",
     "Operating System :: OS Independent",
 ]
-dependencies = []
+dependencies = [
+    "funcy>=2.0",
+]
 license = {text = "AGPLv3"}
 
 [project.urls]
