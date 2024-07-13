@@ -3,13 +3,14 @@ import json
 import logging
 from dataclasses import dataclass
 
-import httpx
+from httpx import AsyncClient
 
 from . import GeoPoint
 from .logDuration import logDuration
 
 
 DEFAULT_OVERPASS_URL = "https://overpass-api.de/api/interpreter"
+client = AsyncClient()
 
 
 class KeyDict(dict):
@@ -132,10 +133,10 @@ class OverpassResult:
         )
 
 
-def _getOverpassHttpx(query: str, overpassUrl: str):
+async def _getOverpassHttpx(query: str, overpassUrl: str):
     with logDuration("Downloading data from Overpass"):
         jsonQuery = f"[out:json][timeout:250];\n{query}"
-        response = httpx.post(overpassUrl, data=dict(data=jsonQuery))
+        response = await client.post(overpassUrl, data=dict(data=jsonQuery))
         response.raise_for_status()
     with logDuration("Parsing Overpass JSON"):
         return json.loads(response.text)["elements"]
@@ -176,8 +177,10 @@ def _parseOverpassData(parsedElements: list[dict]) -> OverpassResult:
     return OverpassResult(nodes=nodes, ways=ways, relations=relations)
 
 
-def downloadOverpassData(
+async def downloadOverpassData(
     query: str, overpassUrl: str = DEFAULT_OVERPASS_URL
 ) -> OverpassResult:
     logging.info("⏬ Overpass Download")
-    return _parseOverpassData(_getOverpassHttpx(query=query, overpassUrl=overpassUrl))
+    return _parseOverpassData(
+        await _getOverpassHttpx(query=query, overpassUrl=overpassUrl)
+    )

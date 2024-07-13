@@ -12,6 +12,7 @@ in pkgs.mkShell {
       funcy
       httpx
       pytest
+      pytest-asyncio
       pytest-httpx
       twine
     ]))

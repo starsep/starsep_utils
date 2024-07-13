@@ -4,7 +4,7 @@ build-backend = "pdm.backend"
 
 [project]
 name = "starsep_utils"
-version = "0.7.1"
+version = "0.8.0"
 authors = [
     { name="Filip Czaplicki", email="github@starsep.com" },
 ]
@@ -33,4 +33,5 @@ distribution = true
 dev = [
     "pytest>=8.2.2",
     "pytest-httpx>=0.30.0",
+    "pytest-asyncio>=0.23.7",
 ]

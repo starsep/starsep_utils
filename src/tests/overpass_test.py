@@ -1,3 +1,4 @@
+import pytest
 from starsep_utils import (
     downloadOverpassData,
     RelationMember,
@@ -55,7 +56,8 @@ expectedOverpassResult = OverpassResult(
 )
 
 
-def testDownloadOverpassData(httpx_mock):
+@pytest.mark.asyncio
+async def testDownloadOverpassData(httpx_mock):
     httpx_mock.add_response(
         url=DEFAULT_OVERPASS_URL,
         json={
@@ -116,7 +118,7 @@ def testDownloadOverpassData(httpx_mock):
     out;
     """
 
-    assert downloadOverpassData(query) == expectedOverpassResult
+    assert await downloadOverpassData(query) == expectedOverpassResult
 
 
 def testCenter():
