@@ -12,6 +12,7 @@ from .overpass import (
 )
 from .duplicates import removeLikelyDuplicates
 from .fileSize import formatFileSize
+from .healthchecks import healthchecks
 
 __all__ = [
     "haversine",
@@ -26,4 +27,5 @@ __all__ = [
     "RelationMember",
     "formatFileSize",
     "removeLikelyDuplicates",
+    "healthchecks",
 ]

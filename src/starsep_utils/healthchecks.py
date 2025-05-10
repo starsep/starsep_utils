@@ -1,7 +1,7 @@
 import os
 import logging
-from urllib.parse import urljoin
 import httpx
+
 
 def healthchecks(suffix: str = ""):
     env_name = "HEALTHCHECKS_URL"
@@ -9,5 +9,5 @@ def healthchecks(suffix: str = ""):
     if url is None:
         logging.warning(f"Missing {env_name}. Skipping healthchecks")
         return
-    url = urljoin(url, suffix)
+    url = url + suffix
     httpx.get(url)
