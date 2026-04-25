@@ -8,7 +8,6 @@ from httpx import AsyncClient
 from . import GeoPoint
 from .logDuration import logDuration
 
-
 DEFAULT_OVERPASS_URL = "https://overpass-api.de/api/interpreter"
 client = AsyncClient(timeout=None)
 
@@ -133,10 +132,12 @@ class OverpassResult:
         )
 
 
-async def _getOverpassHttpx(query: str, overpassUrl: str):
+async def _getOverpassHttpx(query: str, overpassUrl: str, userAgent: str):
     with logDuration("Downloading data from Overpass"):
         jsonQuery = f"[out:json][timeout:250];\n{query}"
-        response = await client.post(overpassUrl, data=dict(data=jsonQuery))
+        response = await client.post(
+            overpassUrl, data=dict(data=jsonQuery), headers={"User-Agent": userAgent}
+        )
         response.raise_for_status()
     with logDuration("Parsing Overpass JSON"):
         return json.loads(response.text)["elements"]
@@ -178,9 +179,13 @@ def _parseOverpassData(parsedElements: list[dict]) -> OverpassResult:
 
 
 async def downloadOverpassData(
-    query: str, overpassUrl: str = DEFAULT_OVERPASS_URL
+    query: str,
+    overpassUrl: str = DEFAULT_OVERPASS_URL,
+    userAgent: str = "starsep_utils",
 ) -> OverpassResult:
     logging.info("⏬ Overpass Download")
     return _parseOverpassData(
-        await _getOverpassHttpx(query=query, overpassUrl=overpassUrl)
+        await _getOverpassHttpx(
+            query=query, overpassUrl=overpassUrl, userAgent=userAgent
+        )
     )
