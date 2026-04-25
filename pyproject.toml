@@ -1,6 +1,6 @@
 [build-system]
-requires = ["pdm-backend"]
-build-backend = "pdm.backend"
+requires = ["uv_build>=0.11.7,<0.12"]
+build-backend = "uv_build"
 
 [project]
 name = "starsep_utils"
@@ -26,17 +26,10 @@ license = {text = "AGPLv3"}
 Homepage = "https://github.com/starsep/starsep_utils"
 Issues = "https://github.com/starsep/starsep_utils/issues"
 
-[tool.pdm]
-distribution = true
-
-[tool.pdm.dev-dependencies]
-dev = [
-    "pytest>=8.2.2",
-    "pytest-httpx>=0.30.0",
-    "pytest-asyncio>=0.23.7",
-]
-
 [dependency-groups]
 dev = [
+    "pytest>=8.2.2",
+    "pytest-asyncio>=0.23.7",
+    "pytest-httpx>=0.30.0",
     "ruff>=0.11.9",
 ]
