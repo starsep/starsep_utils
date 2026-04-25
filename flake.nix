@@ -17,7 +17,6 @@
         in
         pkgs.mkShell {
           packages = with pkgs; [
-            lefthook
             ruff
             (python3.withPackages (
               python-pkgs: with python-pkgs; [
