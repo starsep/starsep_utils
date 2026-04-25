@@ -1,6 +1,18 @@
 repos:
-- repo: https://github.com/astral-sh/ruff-pre-commit
-  rev: v0.15.12 # should match uv.lock
-  hooks:
-    - id: ruff-check
-    - id: ruff-format
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.15.12 # should match uv.lock
+    hooks:
+      - id: ruff-check
+      - id: ruff-format
+  - repo: local
+    hooks:
+      - id: yamlfmt
+        name: yamlfmt
+        language: system
+        entry: yamlfmt
+        types: [yaml]
+      - id: pytest
+        name: pytest
+        language: system
+        entry: pytest
+        types: [python]
